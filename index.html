@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RLhub</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens do design system "Preço Teto" ───────────────────────────── */
+:root {
+  --surface-000:#ffffff; --surface-100:#f4f8fb; --surface-200:#e5eef4;
+  --surface-brand:#004070; --surface-accent:#66cdaa;
+  --ink-900:#00263f; --ink-700:#004070; --ink-500:#4d6f88;
+  --on-brand:#ffffff; --on-accent:#00263f; --accent-ink:#0c7a59;
+  --border-subtle:#d6e3ec; --border-strong:#5f7f94; --focus:#3f9c7c;
+  --positive:#0c7a59; --negative:#b3261e; --caution:#8a5a00;
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:24px; --space-6:32px; --space-8:48px; --space-10:64px;
+  --radius-sm:4px; --radius-md:8px; --radius-lg:14px; --radius-pill:999px;
+  --font-sans:Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"Roboto Mono",ui-monospace,Menlo,monospace;
+  --side-w:264px; --top-h:60px;
+}
+:root[data-theme="dark"] {
+  --surface-000:#001b2e; --surface-100:#002a45; --surface-200:#003656;
+  --surface-brand:#004070; --surface-accent:#66cdaa;
+  --ink-900:#ffffff; --ink-700:#dfeaf2; --ink-500:#9dbdd3;
+  --on-brand:#ffffff; --on-accent:#00263f; --accent-ink:#8fe0c2;
+  --border-subtle:#14486e; --border-strong:#7fa8c4; --focus:#66cdaa;
+  --positive:#66cdaa; --negative:#ff8a80; --caution:#f0b429;
+}
+
+*,*::before,*::after { box-sizing:border-box; }
+html,body { height:100%; }
+body { margin:0; background:var(--surface-000); color:var(--ink-700);
+  font-family:var(--font-sans); font-size:15px; line-height:22px; overflow:hidden; }
+.rotulo { font-size:12px; line-height:16px; font-weight:500; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-500); }
+.legenda { font-size:11px; line-height:15px; color:var(--ink-500); }
+:focus-visible { outline:2px solid var(--focus); outline-offset:2px; border-radius:var(--radius-sm); }
+button { font:inherit; }
+a { color:inherit; }
+
+/* ── Topo ───────────────────────────────────────────────────────────── */
+.top { position:fixed; inset:0 0 auto 0; height:var(--top-h); z-index:20;
+  background:var(--surface-brand); color:var(--on-brand);
+  display:flex; align-items:center; gap:var(--space-4); padding:0 var(--space-5); }
+.marca { display:flex; align-items:center; gap:var(--space-3); font-size:19px;
+  font-weight:700; letter-spacing:-.01em; white-space:nowrap; text-decoration:none; }
+.marca .rl { color:var(--surface-accent); font-weight:700; }
+.marca .hub { font-weight:400; opacity:.92; }
+.top-titulo { margin-left:var(--space-4); font-size:14px; opacity:.8;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.top-dir { margin-left:auto; display:flex; align-items:center; gap:var(--space-2); }
+.btn-top { height:34px; padding:0 var(--space-3); border-radius:var(--radius-md);
+  background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff;
+  cursor:pointer; font-size:13px; text-decoration:none; display:inline-flex;
+  align-items:center; gap:var(--space-2); }
+.btn-top:hover { background:rgba(255,255,255,.12); }
+.menu-btn { display:none; background:none; border:0; color:#fff; cursor:pointer;
+  padding:var(--space-2); margin-left:calc(var(--space-2) * -1); border-radius:var(--radius-sm); }
+
+/* ── Menu lateral ───────────────────────────────────────────────────── */
+.side { position:fixed; top:var(--top-h); bottom:0; left:0; width:var(--side-w); z-index:15;
+  background:var(--surface-100); border-right:1px solid var(--border-subtle);
+  overflow-y:auto; padding:var(--space-4) var(--space-3); }
+.grupo { margin-bottom:var(--space-2); }
+.grupo-cab { width:100%; display:flex; align-items:center; justify-content:space-between;
+  gap:var(--space-2); background:none; border:0; cursor:pointer; text-align:left;
+  padding:var(--space-2) var(--space-3); border-radius:var(--radius-md); color:var(--ink-500);
+  font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; }
+.grupo-cab:hover { background:var(--surface-200); color:var(--ink-900); }
+.grupo-cab svg { transition:transform .18s ease; flex-shrink:0; }
+.grupo-cab[aria-expanded="false"] svg { transform:rotate(-90deg); }
+.grupo ul { list-style:none; margin:var(--space-1) 0 0; padding:0; overflow:hidden; }
+.grupo[data-aberto="false"] ul { display:none; }
+.item { display:flex; align-items:center; gap:var(--space-3); width:100%;
+  padding:var(--space-2) var(--space-3); border-radius:var(--radius-md);
+  color:var(--ink-700); text-decoration:none; font-size:14px; }
+.item:hover { background:var(--surface-200); color:var(--ink-900); }
+.item[aria-current="page"] { background:var(--surface-brand); color:var(--on-brand); font-weight:500; }
+.item[aria-current="page"] .ponto { background:var(--surface-accent); }
+.ponto { width:6px; height:6px; border-radius:var(--radius-pill);
+  background:var(--border-strong); flex-shrink:0; }
+.side-rodape { margin-top:var(--space-5); padding:var(--space-3);
+  border-top:1px solid var(--border-subtle); }
+
+/* ── Conteúdo ───────────────────────────────────────────────────────── */
+.main { position:fixed; top:var(--top-h); left:var(--side-w); right:0; bottom:0;
+  background:var(--surface-000); }
+iframe { width:100%; height:100%; border:0; display:block; background:var(--surface-000); }
+
+.home { height:100%; overflow-y:auto; padding:var(--space-6); }
+.home-cab { max-width:900px; margin:0 auto var(--space-6); }
+.home h1 { font-size:28px; line-height:34px; font-weight:700; color:var(--ink-900); margin:0; }
+.home h1 .rl { color:var(--accent-ink); }
+.home p.sub { margin:var(--space-2) 0 0; color:var(--ink-500); font-size:15px; }
+.cards { max-width:900px; margin:0 auto; display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--space-5); }
+.card { display:block; border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+  padding:var(--space-5); text-decoration:none; background:var(--surface-000); }
+.card:hover { border-color:var(--border-strong); background:var(--surface-100); }
+.card .icone { width:40px; height:40px; border-radius:var(--radius-md);
+  background:var(--surface-brand); color:var(--surface-accent);
+  display:grid; place-items:center; margin-bottom:var(--space-4); }
+.card h2 { font-size:18px; line-height:24px; font-weight:500; color:var(--ink-900);
+  margin:0 0 var(--space-2); }
+.card p { margin:0; font-size:13px; line-height:19px; color:var(--ink-500); }
+
+.carregando { position:absolute; inset:0; display:grid; place-items:center;
+  background:var(--surface-000); color:var(--ink-500); font-size:13px; }
+
+.velo { display:none; position:fixed; inset:var(--top-h) 0 0 0; z-index:14;
+  background:rgba(0,38,63,.45); }
+
+@media (max-width:860px) {
+  .menu-btn { display:block; }
+  .side { transform:translateX(-100%); transition:transform .2s ease; width:min(var(--side-w),82vw); }
+  body[data-menu="aberto"] .side { transform:translateX(0); }
+  body[data-menu="aberto"] .velo { display:block; }
+  .main { left:0; }
+  .top-titulo { display:none; }
+  .home { padding:var(--space-4); }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="Abrir menu" aria-expanded="false">
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" fill="currentColor">
+      <rect x="2" y="5"  width="18" height="2" rx="1"></rect>
+      <rect x="2" y="10" width="18" height="2" rx="1"></rect>
+      <rect x="2" y="15" width="18" height="2" rx="1"></rect>
+    </svg>
+  </button>
+
+  <a class="marca" href="#/" id="marca">
+    <svg width="24" height="24" viewBox="0 0 22 22" aria-hidden="true">
+      <rect x="0" y="4" width="22" height="2" rx="1" fill="#66cdaa"></rect>
+      <rect x="2" y="10" width="4" height="9" rx="1" fill="#fff" opacity=".85"></rect>
+      <rect x="9" y="8" width="4" height="11" rx="1" fill="#fff" opacity=".85"></rect>
+      <rect x="16" y="13" width="4" height="6" rx="1" fill="#fff" opacity=".85"></rect>
+    </svg>
+    <span><span class="rl">RL</span><span class="hub">hub</span></span>
+  </a>
+
+  <span class="top-titulo" id="topTitulo"></span>
+
+  <div class="top-dir">
+    <a class="btn-top" id="abrirNova" href="#" target="_blank" rel="noopener" style="display:none">
+      Abrir em nova aba
+    </a>
+    <button class="btn-top" id="tema" type="button">Tema escuro</button>
+  </div>
+</header>
+
+<div class="velo" id="velo"></div>
+
+<aside class="side" id="side">
+  <nav aria-label="Seções">
+    <div class="grupo" data-aberto="true">
+      <button class="grupo-cab" type="button" aria-expanded="true">
+        Financeiro
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 5.5L7 9.5L11 5.5"></path>
+        </svg>
+      </button>
+      <ul>
+        <li><a class="item" href="#/obras" data-rota="obras"><span class="ponto"></span>Controle de Obras</a></li>
+      </ul>
+    </div>
+
+    <div class="grupo" data-aberto="true">
+      <button class="grupo-cab" type="button" aria-expanded="true">
+        Investimentos
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 5.5L7 9.5L11 5.5"></path>
+        </svg>
+      </button>
+      <ul>
+        <li><a class="item" href="#/preco-teto" data-rota="preco-teto"><span class="ponto"></span>Calcular preço teto</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="side-rodape">
+    <p class="legenda" style="margin:0">Cada página continua funcionando pelo endereço próprio;
+      o hub só reúne tudo num lugar.</p>
+  </div>
+</aside>
+
+<main class="main" id="main"></main>
+
+<script>
+"use strict";
+
+var ROTAS = {
+  "obras": {
+    titulo: "Controle de Obras",
+    grupo: "Financeiro",
+    url: "/controle-obras/",
+    desc: "Orçamento por etapa, lançamentos, realizado × orçado e previsão de desembolso."
+  },
+  "preco-teto": {
+    titulo: "Calcular preço teto",
+    grupo: "Investimentos",
+    url: "/analisador-de-preco/",
+    desc: "Até quanto pagar por uma ação para obter o dividend yield que você exige."
+  }
+};
+
+var $ = function (id) { return document.getElementById(id); };
+
+/* ---------- tema (chave compartilhada com as páginas do hub) ---------- */
+var loja = {
+  get: function (k, d) { try { var v = localStorage.getItem("pt_" + k); return v === null ? d : v; } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem("pt_" + k, v); } catch (e) {} }
+};
+
+function aplicarTema(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  $("tema").textContent = t === "dark" ? "Tema claro" : "Tema escuro";
+  loja.set("tema", t);
+  propagarTema();
+}
+
+/* As páginas ficam no mesmo domínio, então dá para acertar o tema dentro da moldura. */
+function propagarTema() {
+  var f = document.querySelector("#main iframe");
+  if (!f) return;
+  try {
+    var doc = f.contentDocument;
+    if (doc && doc.documentElement) {
+      doc.documentElement.setAttribute("data-theme",
+        document.documentElement.getAttribute("data-theme"));
+    }
+  } catch (e) { /* página de outra origem: ignora */ }
+}
+
+$("tema").addEventListener("click", function () {
+  aplicarTema(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+});
+
+/* ---------- menu ---------- */
+[].forEach.call(document.querySelectorAll(".grupo-cab"), function (b) {
+  b.addEventListener("click", function () {
+    var g = b.parentNode;
+    var aberto = g.getAttribute("data-aberto") !== "false";
+    g.setAttribute("data-aberto", aberto ? "false" : "true");
+    b.setAttribute("aria-expanded", aberto ? "false" : "true");
+  });
+});
+
+function fecharMenu() { document.body.removeAttribute("data-menu"); $("menuBtn").setAttribute("aria-expanded", "false"); }
+$("menuBtn").addEventListener("click", function () {
+  var aberto = document.body.getAttribute("data-menu") === "aberto";
+  if (aberto) fecharMenu();
+  else { document.body.setAttribute("data-menu", "aberto"); $("menuBtn").setAttribute("aria-expanded", "true"); }
+});
+$("velo").addEventListener("click", fecharMenu);
+
+/* ---------- navegação ---------- */
+function rotaAtual() {
+  var h = (location.hash || "").replace(/^#\/?/, "").replace(/\/$/, "");
+  return ROTAS[h] ? h : "";
+}
+
+function marcarItem(chave) {
+  [].forEach.call(document.querySelectorAll(".item"), function (a) {
+    if (a.getAttribute("data-rota") === chave) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+}
+
+function renderHome() {
+  $("topTitulo").textContent = "";
+  $("abrirNova").style.display = "none";
+  var cards = Object.keys(ROTAS).map(function (k) {
+    var r = ROTAS[k];
+    return '<a class="card" href="#/' + k + '">' +
+      '<span class="icone">' +
+        '<svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" fill="currentColor">' +
+        '<rect x="2" y="10" width="4" height="9" rx="1"></rect>' +
+        '<rect x="9" y="6" width="4" height="13" rx="1"></rect>' +
+        '<rect x="16" y="13" width="4" height="6" rx="1"></rect></svg>' +
+      '</span>' +
+      '<h2>' + r.titulo + '</h2>' +
+      '<p>' + r.desc + '</p>' +
+      '<p class="legenda" style="margin-top:12px">' + r.grupo + '</p>' +
+    '</a>';
+  }).join("");
+
+  $("main").innerHTML =
+    '<div class="home">' +
+      '<div class="home-cab">' +
+        '<h1><span class="rl">RL</span>hub</h1>' +
+        '<p class="sub">Suas páginas reunidas num lugar só. Escolha no menu ao lado ou nos cartões abaixo.</p>' +
+      '</div>' +
+      '<div class="cards">' + cards + '</div>' +
+    '</div>';
+}
+
+function renderApp(chave) {
+  var r = ROTAS[chave];
+  $("topTitulo").textContent = r.grupo + " · " + r.titulo;
+  $("abrirNova").href = r.url;
+  $("abrirNova").style.display = "";
+
+  $("main").innerHTML =
+    '<div class="carregando" id="carregando">Carregando ' + r.titulo + '…</div>' +
+    '<iframe id="quadro" title="' + r.titulo + '" src="' + r.url + '"></iframe>';
+
+  var f = $("quadro");
+  f.addEventListener("load", function () {
+    var c = $("carregando");
+    if (c) c.remove();
+    propagarTema();
+    ajustarEmbutido(f, r);
+  });
+}
+
+/* Dentro do hub, a página não precisa repetir a marca nem o botão de tema. */
+function ajustarEmbutido(frame, rota) {
+  try {
+    var doc = frame.contentDocument;
+    if (!doc) return;
+    var estilo = doc.createElement("style");
+    estilo.textContent =
+      ".top .logo, .top #tema, .top .tema { display:none !important; }" +
+      ".top { padding-left:16px !important; }";
+    doc.head.appendChild(estilo);
+  } catch (e) { /* outra origem: a página fica como está */ }
+}
+
+function navegar() {
+  var chave = rotaAtual();
+  marcarItem(chave);
+  if (chave) renderApp(chave); else renderHome();
+  fecharMenu();
+  if (window.innerWidth <= 860) window.scrollTo(0, 0);
+}
+
+window.addEventListener("hashchange", navegar);
+
+/* ---------- inicialização ---------- */
+aplicarTema(loja.get("tema",
+  (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light"));
+navegar();
+</script>
+</body>
+</html>
