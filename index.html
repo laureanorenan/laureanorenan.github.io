@@ -6,8 +6,10 @@
 <title>RLhub</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- biblioteca do Supabase servida do próprio domínio (a mesma que o Controle de
+     Obras já usa): nada de CDN externo, e a sessão fica compartilhada -->
+<script src="/controle-obras/vendor-supabase.js"></script>
 <style>
-/* ── Tokens do design system "Preço Teto" ───────────────────────────── */
 :root {
   --surface-000:#ffffff; --surface-100:#f4f8fb; --surface-200:#e5eef4;
   --surface-brand:#004070; --surface-accent:#66cdaa;
@@ -43,7 +45,6 @@ body { margin:0; background:var(--surface-000); color:var(--ink-700);
 button { font:inherit; }
 a { color:inherit; }
 
-/* ── Topo ───────────────────────────────────────────────────────────── */
 .top { position:fixed; inset:0 0 auto 0; height:var(--top-h); z-index:20;
   background:var(--surface-brand); color:var(--on-brand);
   display:flex; align-items:center; gap:var(--space-4); padding:0 var(--space-5); }
@@ -59,10 +60,11 @@ a { color:inherit; }
   cursor:pointer; font-size:13px; text-decoration:none; display:inline-flex;
   align-items:center; gap:var(--space-2); }
 .btn-top:hover { background:rgba(255,255,255,.12); }
+.conta { display:flex; align-items:center; gap:var(--space-2); font-size:13px; }
+.conta .quem { opacity:.85; max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .menu-btn { display:none; background:none; border:0; color:#fff; cursor:pointer;
   padding:var(--space-2); margin-left:calc(var(--space-2) * -1); border-radius:var(--radius-sm); }
 
-/* ── Menu lateral ───────────────────────────────────────────────────── */
 .side { position:fixed; top:var(--top-h); bottom:0; left:0; width:var(--side-w); z-index:15;
   background:var(--surface-100); border-right:1px solid var(--border-subtle);
   overflow-y:auto; padding:var(--space-4) var(--space-3); }
@@ -74,7 +76,7 @@ a { color:inherit; }
 .grupo-cab:hover { background:var(--surface-200); color:var(--ink-900); }
 .grupo-cab svg { transition:transform .18s ease; flex-shrink:0; }
 .grupo-cab[aria-expanded="false"] svg { transform:rotate(-90deg); }
-.grupo ul { list-style:none; margin:var(--space-1) 0 0; padding:0; overflow:hidden; }
+.grupo ul { list-style:none; margin:var(--space-1) 0 0; padding:0; }
 .grupo[data-aberto="false"] ul { display:none; }
 .item { display:flex; align-items:center; gap:var(--space-3); width:100%;
   padding:var(--space-2) var(--space-3); border-radius:var(--radius-md);
@@ -84,12 +86,12 @@ a { color:inherit; }
 .item[aria-current="page"] .ponto { background:var(--surface-accent); }
 .ponto { width:6px; height:6px; border-radius:var(--radius-pill);
   background:var(--border-strong); flex-shrink:0; }
+.cadeado { margin-left:auto; font-size:11px; opacity:.7; }
 .side-rodape { margin-top:var(--space-5); padding:var(--space-3);
   border-top:1px solid var(--border-subtle); }
 
-/* ── Conteúdo ───────────────────────────────────────────────────────── */
 .main { position:fixed; top:var(--top-h); left:var(--side-w); right:0; bottom:0;
-  background:var(--surface-000); }
+  background:var(--surface-000); overflow:hidden; }
 iframe { width:100%; height:100%; border:0; display:block; background:var(--surface-000); }
 
 .home { height:100%; overflow-y:auto; padding:var(--space-6); }
@@ -112,6 +114,28 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
 .carregando { position:absolute; inset:0; display:grid; place-items:center;
   background:var(--surface-000); color:var(--ink-500); font-size:13px; }
 
+/* ── Entrada ────────────────────────────────────────────────────────── */
+.entrar-area { height:100%; overflow-y:auto; display:grid; place-items:center; padding:var(--space-6); }
+.entrar { width:100%; max-width:400px; border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg); padding:var(--space-5); background:var(--surface-000); }
+.entrar h2 { font-size:20px; line-height:26px; font-weight:500; color:var(--ink-900); margin:0 0 var(--space-2); }
+.entrar .por-que { font-size:13px; line-height:19px; color:var(--ink-500); margin:0 0 var(--space-5); }
+.campo-bloco { margin-bottom:var(--space-4); }
+.campo-bloco label { display:block; margin-bottom:var(--space-2); }
+.campo-bloco input { width:100%; height:40px; border:1px solid var(--border-strong);
+  border-radius:var(--radius-sm); background:var(--surface-000); color:var(--ink-900);
+  padding:0 var(--space-3); font-family:var(--font-sans); font-size:15px; }
+.campo-bloco input:focus { outline:none; border-color:var(--focus); box-shadow:0 0 0 2px rgba(63,156,124,.2); }
+.btn-entrar { width:100%; height:42px; border:0; border-radius:var(--radius-md);
+  background:var(--surface-brand); color:var(--on-brand); font-size:15px; font-weight:500; cursor:pointer; }
+.btn-entrar:hover { background:#00355e; }
+.btn-entrar:disabled { opacity:.6; cursor:default; }
+.aviso { margin:var(--space-4) 0 0; font-size:13px; line-height:19px; }
+.aviso.erro { color:var(--negative); }
+.aviso.ok { color:var(--accent-ink); }
+.entrar .rodape { margin:var(--space-5) 0 0; padding-top:var(--space-4);
+  border-top:1px solid var(--border-subtle); }
+
 .velo { display:none; position:fixed; inset:var(--top-h) 0 0 0; z-index:14;
   background:rgba(0,38,63,.45); }
 
@@ -121,7 +145,7 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
   body[data-menu="aberto"] .side { transform:translateX(0); }
   body[data-menu="aberto"] .velo { display:block; }
   .main { left:0; }
-  .top-titulo { display:none; }
+  .top-titulo, .conta .quem { display:none; }
   .home { padding:var(--space-4); }
 }
 </style>
@@ -150,9 +174,8 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
   <span class="top-titulo" id="topTitulo"></span>
 
   <div class="top-dir">
-    <a class="btn-top" id="abrirNova" href="#" target="_blank" rel="noopener" style="display:none">
-      Abrir em nova aba
-    </a>
+    <span class="conta" id="conta"></span>
+    <a class="btn-top" id="abrirNova" href="#" target="_blank" rel="noopener" style="display:none">Abrir em nova aba</a>
     <button class="btn-top" id="tema" type="button">Tema escuro</button>
   </div>
 </header>
@@ -170,7 +193,7 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
         </svg>
       </button>
       <ul>
-        <li><a class="item" href="#/obras" data-rota="obras"><span class="ponto"></span>Controle de Obras</a></li>
+        <li><a class="item" href="#/obras" data-rota="obras"><span class="ponto"></span>Controle de Obras<span class="cadeado" id="cadeadoObras"></span></a></li>
       </ul>
     </div>
 
@@ -199,22 +222,34 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
 <script>
 "use strict";
 
+var SUPABASE_URL = "https://inlkyyjqfrokohdgfswd.supabase.co";
+var SUPABASE_KEY = "sb_publishable_Jy_Htveu81VI0-WGwJlO_g_lieqPAZT";
+
 var ROTAS = {
   "obras": {
     titulo: "Controle de Obras",
     grupo: "Financeiro",
     url: "/controle-obras/",
+    precisaConta: true,
     desc: "Orçamento por etapa, lançamentos, realizado × orçado e previsão de desembolso."
   },
   "preco-teto": {
     titulo: "Calcular preço teto",
     grupo: "Investimentos",
     url: "/analisador-de-preco/",
+    precisaConta: false,
     desc: "Até quanto pagar por uma ação para obter o dividend yield que você exige."
   }
 };
 
 var $ = function (id) { return document.getElementById(id); };
+var sb = null, sessao = null;
+
+try {
+  if (window.supabase && window.supabase.createClient) {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch (e) { console.warn("Supabase indisponível:", e); }
 
 /* ---------- tema (chave compartilhada com as páginas do hub) ---------- */
 var loja = {
@@ -228,20 +263,16 @@ function aplicarTema(t) {
   loja.set("tema", t);
   propagarTema();
 }
-
-/* As páginas ficam no mesmo domínio, então dá para acertar o tema dentro da moldura. */
 function propagarTema() {
   var f = document.querySelector("#main iframe");
   if (!f) return;
   try {
     var doc = f.contentDocument;
     if (doc && doc.documentElement) {
-      doc.documentElement.setAttribute("data-theme",
-        document.documentElement.getAttribute("data-theme"));
+      doc.documentElement.setAttribute("data-theme", document.documentElement.getAttribute("data-theme"));
     }
-  } catch (e) { /* página de outra origem: ignora */ }
+  } catch (e) {}
 }
-
 $("tema").addEventListener("click", function () {
   aplicarTema(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
 });
@@ -255,7 +286,6 @@ $("tema").addEventListener("click", function () {
     b.setAttribute("aria-expanded", aberto ? "false" : "true");
   });
 });
-
 function fecharMenu() { document.body.removeAttribute("data-menu"); $("menuBtn").setAttribute("aria-expanded", "false"); }
 $("menuBtn").addEventListener("click", function () {
   var aberto = document.body.getAttribute("data-menu") === "aberto";
@@ -264,9 +294,111 @@ $("menuBtn").addEventListener("click", function () {
 });
 $("velo").addEventListener("click", fecharMenu);
 
+/* ---------- conta ---------- */
+function renderConta() {
+  var alvo = $("conta");
+  alvo.innerHTML = "";
+  $("cadeadoObras").textContent = (sessao || !sb) ? "" : "🔒";
+
+  if (!sb) return;
+
+  if (sessao) {
+    var quem = document.createElement("span");
+    quem.className = "quem";
+    quem.textContent = sessao.user && sessao.user.email ? sessao.user.email : "conectado";
+    var sair = document.createElement("button");
+    sair.className = "btn-top";
+    sair.type = "button";
+    sair.textContent = "Sair";
+    sair.addEventListener("click", sairDaConta);
+    alvo.appendChild(quem);
+    alvo.appendChild(sair);
+  } else {
+    var entrar = document.createElement("a");
+    entrar.className = "btn-top";
+    entrar.href = "#/entrar";
+    entrar.textContent = "Entrar";
+    alvo.appendChild(entrar);
+  }
+}
+
+async function sairDaConta() {
+  if (!sb) return;
+  try { await sb.auth.signOut(); } catch (e) {}
+  sessao = null;
+  renderConta();
+  navegar();
+}
+
+function renderEntrar(rotaDestino) {
+  var r = rotaDestino ? ROTAS[rotaDestino] : null;
+  $("topTitulo").textContent = "Entrar";
+  $("abrirNova").style.display = "none";
+
+  $("main").innerHTML =
+    '<div class="entrar-area"><div class="entrar">' +
+      '<h2>Entrar na sua conta</h2>' +
+      '<p class="por-que">' +
+        (r ? r.titulo + ' guarda seus dados na sua conta. Entre uma vez aqui e o hub abre a página já conectada.'
+           : 'Entre uma vez aqui e as páginas do hub que usam conta abrem já conectadas.') +
+      '</p>' +
+      '<form id="formEntrar">' +
+        '<div class="campo-bloco">' +
+          '<label class="rotulo" for="email">E-mail</label>' +
+          '<input id="email" type="email" autocomplete="username" placeholder="voce@exemplo.com" required>' +
+        '</div>' +
+        '<div class="campo-bloco">' +
+          '<label class="rotulo" for="senha">Senha</label>' +
+          '<input id="senha" type="password" autocomplete="current-password" placeholder="sua senha" required>' +
+        '</div>' +
+        '<button class="btn-entrar" id="btnEntrar" type="submit">Entrar</button>' +
+      '</form>' +
+      '<p class="aviso" id="avisoEntrar" style="display:none"></p>' +
+      '<div class="rodape"><p class="legenda" style="margin:0">' +
+        'É a mesma conta do Controle de Obras — nada muda no cadastro. ' +
+        'A sessão fica só neste navegador.' +
+      '</p></div>' +
+    '</div></div>';
+
+  $("formEntrar").addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    var aviso = $("avisoEntrar"), botao = $("btnEntrar");
+    aviso.style.display = "none";
+    if (!sb) { aviso.className = "aviso erro"; aviso.textContent = "Não consegui carregar a biblioteca de login."; aviso.style.display = "block"; return; }
+    botao.disabled = true; botao.textContent = "Entrando…";
+    try {
+      var res = await sb.auth.signInWithPassword({
+        email: $("email").value.trim(),
+        password: $("senha").value
+      });
+      if (res.error) {
+        aviso.className = "aviso erro";
+        aviso.textContent = /invalid/i.test(res.error.message || "")
+          ? "E-mail ou senha não conferem."
+          : ("Não consegui entrar: " + (res.error.message || "erro desconhecido"));
+        aviso.style.display = "block";
+        botao.disabled = false; botao.textContent = "Entrar";
+        return;
+      }
+      sessao = res.data.session;
+      renderConta();
+      location.hash = rotaDestino ? "#/" + rotaDestino : "#/";
+      navegar();
+    } catch (e) {
+      aviso.className = "aviso erro";
+      aviso.textContent = "Não consegui entrar: " + (e && e.message ? e.message : e);
+      aviso.style.display = "block";
+      botao.disabled = false; botao.textContent = "Entrar";
+    }
+  });
+
+  setTimeout(function () { var e = $("email"); if (e) e.focus(); }, 60);
+}
+
 /* ---------- navegação ---------- */
 function rotaAtual() {
   var h = (location.hash || "").replace(/^#\/?/, "").replace(/\/$/, "");
+  if (h === "entrar") return "entrar";
   return ROTAS[h] ? h : "";
 }
 
@@ -282,6 +414,7 @@ function renderHome() {
   $("abrirNova").style.display = "none";
   var cards = Object.keys(ROTAS).map(function (k) {
     var r = ROTAS[k];
+    var trava = (r.precisaConta && !sessao) ? ' · precisa entrar' : '';
     return '<a class="card" href="#/' + k + '">' +
       '<span class="icone">' +
         '<svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" fill="currentColor">' +
@@ -291,7 +424,7 @@ function renderHome() {
       '</span>' +
       '<h2>' + r.titulo + '</h2>' +
       '<p>' + r.desc + '</p>' +
-      '<p class="legenda" style="margin-top:12px">' + r.grupo + '</p>' +
+      '<p class="legenda" style="margin-top:12px">' + r.grupo + trava + '</p>' +
     '</a>';
   }).join("");
 
@@ -320,12 +453,12 @@ function renderApp(chave) {
     var c = $("carregando");
     if (c) c.remove();
     propagarTema();
-    ajustarEmbutido(f, r);
+    ajustarEmbutido(f);
   });
 }
 
-/* Dentro do hub, a página não precisa repetir a marca nem o botão de tema. */
-function ajustarEmbutido(frame, rota) {
+/* Dentro do hub, a página não repete a marca nem o botão de tema. */
+function ajustarEmbutido(frame) {
   try {
     var doc = frame.contentDocument;
     if (!doc) return;
@@ -334,15 +467,30 @@ function ajustarEmbutido(frame, rota) {
       ".top .logo, .top #tema, .top .tema { display:none !important; }" +
       ".top { padding-left:16px !important; }";
     doc.head.appendChild(estilo);
-  } catch (e) { /* outra origem: a página fica como está */ }
+  } catch (e) {}
 }
 
 function navegar() {
   var chave = rotaAtual();
+
+  if (chave === "entrar") {
+    marcarItem("");
+    if (sessao) { location.hash = "#/"; return; }
+    renderEntrar(null);
+    fecharMenu();
+    return;
+  }
+
   marcarItem(chave);
-  if (chave) renderApp(chave); else renderHome();
+
+  if (chave && ROTAS[chave].precisaConta && !sessao) {
+    renderEntrar(chave);
+  } else if (chave) {
+    renderApp(chave);
+  } else {
+    renderHome();
+  }
   fecharMenu();
-  if (window.innerWidth <= 860) window.scrollTo(0, 0);
 }
 
 window.addEventListener("hashchange", navegar);
@@ -350,7 +498,23 @@ window.addEventListener("hashchange", navegar);
 /* ---------- inicialização ---------- */
 aplicarTema(loja.get("tema",
   (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light"));
-navegar();
+
+(async function () {
+  if (sb) {
+    try {
+      var r = await sb.auth.getSession();
+      sessao = (r && r.data) ? r.data.session : null;
+    } catch (e) { sessao = null; }
+    sb.auth.onAuthStateChange(function (evento, s) {
+      var antes = !!sessao;
+      sessao = s;
+      renderConta();
+      if (antes !== !!sessao) navegar();
+    });
+  }
+  renderConta();
+  navegar();
+})();
 </script>
 </body>
 </html>
