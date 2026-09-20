@@ -194,6 +194,7 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
       </button>
       <ul>
         <li><a class="item" href="#/obras" data-rota="obras"><span class="ponto"></span>Controle de Obras<span class="cadeado" id="cadeadoObras"></span></a></li>
+        <li><a class="item" href="#/financeiro" data-rota="financeiro"><span class="ponto"></span>Receitas/Despesas<span class="cadeado" id="cadeadoFinanceiro"></span></a></li>
       </ul>
     </div>
 
@@ -232,6 +233,13 @@ var ROTAS = {
     url: "/controle-obras/",
     precisaConta: true,
     desc: "Orçamento por etapa, lançamentos, realizado × orçado e previsão de desembolso."
+  },
+  "financeiro": {
+    titulo: "Receitas/Despesas",
+    grupo: "Financeiro",
+    url: "/financeiro/",
+    precisaConta: true,
+    desc: "Contas, cartões, lançamentos, parcelas, faturas e relatórios do mês."
   },
   "preco-teto": {
     titulo: "Calcular preço teto",
@@ -298,7 +306,10 @@ $("velo").addEventListener("click", fecharMenu);
 function renderConta() {
   var alvo = $("conta");
   alvo.innerHTML = "";
-  $("cadeadoObras").textContent = (sessao || !sb) ? "" : "🔒";
+  var cad = (sessao || !sb) ? "" : "\uD83D\uDD12";
+  ["cadeadoObras","cadeadoFinanceiro"].forEach(function (id) {
+    var el = $(id); if (el) el.textContent = cad;
+  });
 
   if (!sb) return;
 
@@ -464,7 +475,7 @@ function ajustarEmbutido(frame) {
     if (!doc) return;
     var estilo = doc.createElement("style");
     estilo.textContent =
-      ".top .logo, .top #tema, .top .tema { display:none !important; }" +
+      ".top .logo, .top #tema, .top .tema, #tema { display:none !important; }" +
       ".top { padding-left:16px !important; }";
     doc.head.appendChild(estilo);
   } catch (e) {}
