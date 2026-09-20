@@ -519,9 +519,12 @@ function renderApp(chave) {
   $("abrirNova").href = r.url;
   $("abrirNova").style.display = "";
 
+  // o GitHub Pages guarda a página por 10 minutos; o carimbo garante a versão nova
+  var endereco = r.url + (r.url.indexOf("?") >= 0 ? "&" : "?") + "v=" + Date.now();
+
   $("main").innerHTML =
     '<div class="carregando" id="carregando">Carregando ' + r.titulo + '…</div>' +
-    '<iframe id="quadro" title="' + r.titulo + '" src="' + r.url + '"></iframe>';
+    '<iframe id="quadro" title="' + r.titulo + '" src="' + endereco + '"></iframe>';
 
   var f = $("quadro");
   f.addEventListener("load", function () {
