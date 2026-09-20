@@ -23,7 +23,7 @@
   --radius-sm:4px; --radius-md:8px; --radius-lg:14px; --radius-pill:999px;
   --font-sans:Roboto,"Helvetica Neue",Arial,sans-serif;
   --font-mono:"Roboto Mono",ui-monospace,Menlo,monospace;
-  --side-w:264px; --top-h:60px;
+  --side-w:264px; --side-w-min:64px; --top-h:60px;
 }
 :root[data-theme="dark"] {
   --surface-000:#001b2e; --surface-100:#002a45; --surface-200:#003656;
@@ -70,7 +70,7 @@ a { color:inherit; }
   overflow-y:auto; padding:var(--space-4) var(--space-3); }
 .grupo { margin-bottom:var(--space-2); }
 .grupo-cab { width:100%; display:flex; align-items:center; justify-content:space-between;
-  gap:var(--space-2); background:none; border:0; cursor:pointer; text-align:left;
+  gap:var(--space-2); background:none; border:0; cursor:pointer; text-align:left; white-space:nowrap;
   padding:var(--space-2) var(--space-3); border-radius:var(--radius-md); color:var(--ink-500);
   font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; }
 .grupo-cab:hover { background:var(--surface-200); color:var(--ink-900); }
@@ -80,12 +80,15 @@ a { color:inherit; }
 .grupo[data-aberto="false"] ul { display:none; }
 .item { display:flex; align-items:center; gap:var(--space-3); width:100%;
   padding:var(--space-2) var(--space-3); border-radius:var(--radius-md);
-  color:var(--ink-700); text-decoration:none; font-size:14px; }
+  color:var(--ink-700); text-decoration:none; font-size:14px; white-space:nowrap; }
 .item:hover { background:var(--surface-200); color:var(--ink-900); }
 .item[aria-current="page"] { background:var(--surface-brand); color:var(--on-brand); font-weight:500; }
 .item[aria-current="page"] .ponto { background:var(--surface-accent); }
+.item .ic { width:20px; height:20px; flex-shrink:0; opacity:.85; }
+.item[aria-current="page"] .ic { opacity:1; }
 .ponto { width:6px; height:6px; border-radius:var(--radius-pill);
   background:var(--border-strong); flex-shrink:0; }
+
 .cadeado { margin-left:auto; font-size:11px; opacity:.7; }
 .side-rodape { margin-top:var(--space-5); padding:var(--space-3);
   border-top:1px solid var(--border-subtle); }
@@ -148,9 +151,37 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
   .top-titulo, .conta .quem { display:none; }
   .home { padding:var(--space-4); }
 }
+/* ── Sem sessão: só a barra de cima e a tela de entrar ─────────────── */
+body[data-conta="fora"] .side,
+body[data-conta="verificando"] .side,
+body[data-conta="fora"] .menu-btn,
+body[data-conta="verificando"] .menu-btn,
+body[data-conta="fora"] .velo,
+body[data-conta="fora"] #abrirNova,
+body[data-conta="fora"] .conta { display:none; }
+body[data-conta="fora"] .main,
+body[data-conta="verificando"] .main { left:0; }
+
+/* ── Barra lateral recolhida: só os ícones; abre ao passar o mouse ──── */
+@media (min-width:861px) {
+  .side { width:var(--side-w-min); transition:width .18s ease;
+          overflow-x:hidden; overflow-y:auto; }
+  .side:hover, .side:focus-within { width:var(--side-w); box-shadow:2px 0 16px rgba(0,38,63,.14); }
+  .main { left:var(--side-w-min); }
+
+  .side.recolhida .txt-menu,
+  .side.recolhida .cadeado,
+  .side.recolhida .grupo-cab { display:none; }
+  .side.recolhida .grupo[data-aberto="false"] ul { display:block; }
+  .side.recolhida .grupo + .grupo { margin-top:var(--space-3); padding-top:var(--space-3);
+    border-top:1px solid var(--border-subtle); }
+  .side.recolhida .item { justify-content:center; padding-left:0; padding-right:0; gap:0; }
+  .side.recolhida .side-rodape { margin-top:var(--space-4); padding:var(--space-3) 0 0; }
+  .side.recolhida nav { padding-top:var(--space-1); }
+}
 </style>
 </head>
-<body>
+<body data-conta="verificando">
 
 <header class="top">
   <button class="menu-btn" id="menuBtn" type="button" aria-label="Abrir menu" aria-expanded="false">
@@ -186,34 +217,50 @@ iframe { width:100%; height:100%; border:0; display:block; background:var(--surf
   <nav aria-label="Seções">
     <div class="grupo" data-aberto="true">
       <button class="grupo-cab" type="button" aria-expanded="true">
-        Financeiro
+        <span class="txt-menu">Financeiro</span>
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none"
              stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 5.5L7 9.5L11 5.5"></path>
         </svg>
       </button>
       <ul>
-        <li><a class="item" href="#/obras" data-rota="obras"><span class="ponto"></span>Controle de Obras<span class="cadeado" id="cadeadoObras"></span></a></li>
-        <li><a class="item" href="#/financeiro" data-rota="financeiro"><span class="ponto"></span>Receitas/Despesas<span class="cadeado" id="cadeadoFinanceiro"></span></a></li>
+        <li><a class="item" href="#/obras" data-rota="obras" title="Controle de Obras">
+          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 17V8.5L10 4l7 4.5V17z"></path><path d="M8 17v-5h4v5"></path>
+          </svg>
+          <span class="txt-menu">Controle de Obras</span><span class="cadeado" id="cadeadoObras"></span></a></li>
+        <li><a class="item" href="#/financeiro" data-rota="financeiro" title="Receitas/Despesas">
+          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9L6 3M3.5 5.5L6 3l2.5 2.5"></path>
+            <path d="M14 11v6M11.5 14.5L14 17l2.5-2.5"></path>
+          </svg>
+          <span class="txt-menu">Receitas/Despesas</span><span class="cadeado" id="cadeadoFinanceiro"></span></a></li>
       </ul>
     </div>
 
     <div class="grupo" data-aberto="true">
       <button class="grupo-cab" type="button" aria-expanded="true">
-        Investimentos
+        <span class="txt-menu">Investimentos</span>
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none"
              stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 5.5L7 9.5L11 5.5"></path>
         </svg>
       </button>
       <ul>
-        <li><a class="item" href="#/preco-teto" data-rota="preco-teto"><span class="ponto"></span>Calcular preço teto</a></li>
+        <li><a class="item" href="#/preco-teto" data-rota="preco-teto" title="Calcular preço teto">
+          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 14l4-4 3 3 6-6"></path><path d="M12 7h4v4"></path>
+          </svg>
+          <span class="txt-menu">Calcular preço teto</span></a></li>
       </ul>
     </div>
   </nav>
 
   <div class="side-rodape">
-    <p class="legenda" style="margin:0">Cada página continua funcionando pelo endereço próprio;
+    <p class="legenda txt-menu" style="margin:0">Cada página continua funcionando pelo endereço próprio;
       o hub só reúne tudo num lugar.</p>
   </div>
 </aside>
@@ -285,6 +332,21 @@ $("tema").addEventListener("click", function () {
   aplicarTema(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
 });
 
+/* ---------- barra lateral: recolhida, abre ao passar o mouse ---------- */
+var barra = $("side");
+var telaLarga = window.matchMedia("(min-width:861px)");
+function recolherBarra(v) {
+  barra.classList.toggle("recolhida", !!v && telaLarga.matches);
+}
+recolherBarra(true);
+barra.addEventListener("mouseenter", function () { recolherBarra(false); });
+barra.addEventListener("mouseleave", function () { recolherBarra(true); });
+barra.addEventListener("focusin", function () { recolherBarra(false); });
+barra.addEventListener("focusout", function () {
+  if (!barra.matches(":hover")) recolherBarra(true);
+});
+telaLarga.addEventListener("change", function () { recolherBarra(!barra.matches(":hover")); });
+
 /* ---------- menu ---------- */
 [].forEach.call(document.querySelectorAll(".grupo-cab"), function (b) {
   b.addEventListener("click", function () {
@@ -306,6 +368,8 @@ $("velo").addEventListener("click", fecharMenu);
 function renderConta() {
   var alvo = $("conta");
   alvo.innerHTML = "";
+  // sem biblioteca de login não há o que trancar
+  document.body.setAttribute("data-conta", !sb ? "dentro" : (sessao ? "dentro" : "fora"));
   var cad = (sessao || !sb) ? "" : "\uD83D\uDD12";
   ["cadeadoObras","cadeadoFinanceiro"].forEach(function (id) {
     var el = $(id); if (el) el.textContent = cad;
@@ -351,7 +415,7 @@ function renderEntrar(rotaDestino) {
       '<h2>Entrar na sua conta</h2>' +
       '<p class="por-que">' +
         (r ? r.titulo + ' guarda seus dados na sua conta. Entre uma vez aqui e o hub abre a página já conectada.'
-           : 'Entre uma vez aqui e as páginas do hub que usam conta abrem já conectadas.') +
+           : 'O RLhub abre depois que você entrar. É uma vez só neste navegador.') +
       '</p>' +
       '<form id="formEntrar">' +
         '<div class="campo-bloco">' +
@@ -484,11 +548,17 @@ function ajustarEmbutido(frame) {
 function navegar() {
   var chave = rotaAtual();
 
+  // enquanto não entrar, o hub inteiro fica fechado
+  if (sb && !sessao) {
+    marcarItem("");
+    renderEntrar(chave && chave !== "entrar" ? chave : null);
+    fecharMenu();
+    return;
+  }
+
   if (chave === "entrar") {
     marcarItem("");
-    if (sessao) { location.hash = "#/"; return; }
-    renderEntrar(null);
-    fecharMenu();
+    location.hash = "#/";
     return;
   }
 
