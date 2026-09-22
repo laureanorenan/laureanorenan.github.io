@@ -5,267 +5,237 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RLhub</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
 <!-- biblioteca do Supabase servida do próprio domínio (a mesma que o Controle de
      Obras já usa): nada de CDN externo, e a sessão fica compartilhada -->
 <script src="/controle-obras/vendor-supabase.js"></script>
 <style>
+/* ── Tokens do design system RLhub (identidade 2026) ────────────────
+   Tema claro = a paleta do design system. Tema escuro = derivado dela,
+   com os mesmos papéis e contraste conferido (texto ≥ 4.5:1). */
 :root {
-  --surface-000:#ffffff; --surface-100:#f4f8fb; --surface-200:#e5eef4;
-  --surface-brand:#004070; --surface-accent:#66cdaa;
-  --ink-900:#00263f; --ink-700:#004070; --ink-500:#4d6f88;
-  --on-brand:#ffffff; --on-accent:#00263f; --accent-ink:#0c7a59;
-  --border-subtle:#d6e3ec; --border-strong:#5f7f94; --focus:#3f9c7c;
-  --positive:#0c7a59; --negative:#b3261e; --caution:#8a5a00;
+  --surface:#F7F8FA; --surface-raised:#FFFFFF; --surface-hover:#EEF1F5;
+  --line:#E6E9EE; --border-control:#6B7280;
+  --ink:#1D232B; --ink-muted:#6B7280;
+  --brand:#2457A7; --on-brand:#FFFFFF; --brand-soft:#E9EEF6;
+  --positive:#198754; --positive-soft:#E8F3EE;
+  --negative:#B42318; --negative-soft:#F8E9E8;
+  --attention:#C88719; --on-attention:#1D232B; --attention-soft:#FAF3E8;
 
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
-  --space-5:24px; --space-6:32px; --space-8:48px; --space-10:64px;
-  --radius-sm:4px; --radius-md:8px; --radius-lg:14px; --radius-pill:999px;
-  --font-sans:Roboto,"Helvetica Neue",Arial,sans-serif;
-  --font-mono:"Roboto Mono",ui-monospace,Menlo,monospace;
-  --side-w:264px; --side-w-min:64px; --top-h:60px;
+  --space-6:24px; --space-8:32px; --space-12:48px;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-full:9999px;
+  --font-heading:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+  /* sombra só no que flutua (menu da conta, dica) */
+  --shadow-sm:0 1px 2px #1D232B0F, 0 2px 8px #1D232B12;
+  --focus-ring:0 0 0 2px var(--surface), 0 0 0 4px var(--brand);
+
+  --trilho-w:72px; --dock-h:64px;
 }
 :root[data-theme="dark"] {
-  --surface-000:#001b2e; --surface-100:#002a45; --surface-200:#003656;
-  --surface-brand:#004070; --surface-accent:#66cdaa;
-  --ink-900:#ffffff; --ink-700:#dfeaf2; --ink-500:#9dbdd3;
-  --on-brand:#ffffff; --on-accent:#00263f; --accent-ink:#8fe0c2;
-  --border-subtle:#14486e; --border-strong:#7fa8c4; --focus:#66cdaa;
-  --positive:#66cdaa; --negative:#ff8a80; --caution:#f0b429;
+  --surface:#12151A; --surface-raised:#1B1F26; --surface-hover:#242932;
+  --line:#2A2F37; --border-control:#6B7584;
+  --ink:#F2F4F7; --ink-muted:#9AA3AF;
+  --brand:#6CA0E0; --on-brand:#12151A; --brand-soft:#16233A;
+  --positive:#3FCB86; --positive-soft:#0F2A1C;
+  --negative:#F07A6E; --negative-soft:#3A1714;
+  --attention:#E3A542; --on-attention:#12151A; --attention-soft:#332508;
+  --shadow-sm:0 2px 8px #00000099;
 }
 
 *,*::before,*::after { box-sizing:border-box; }
 html,body { height:100%; }
-body { margin:0; background:var(--surface-000); color:var(--ink-700);
-  font-family:var(--font-sans); font-size:15px; line-height:22px; overflow:hidden; }
-.rotulo { font-size:12px; line-height:16px; font-weight:500; letter-spacing:.08em;
-  text-transform:uppercase; color:var(--ink-500); }
-.legenda { font-size:11px; line-height:15px; color:var(--ink-500); }
-:focus-visible { outline:2px solid var(--focus); outline-offset:2px; border-radius:var(--radius-sm); }
-button { font:inherit; }
-a { color:inherit; }
+body { margin:0; background:var(--surface); color:var(--ink);
+  font-family:var(--font-sans); font-size:15px; line-height:22px; overflow:hidden;
+  -webkit-font-smoothing:antialiased; }
+button,input { font:inherit; color:inherit; }
+a { color:inherit; text-decoration:none; }
+:focus-visible { outline:none; box-shadow:var(--focus-ring); border-radius:var(--radius-sm); }
+.rotulo { font-size:12px; line-height:16px; font-weight:500; letter-spacing:.02em; color:var(--ink-muted); }
+.legenda { font-size:12px; line-height:16px; color:var(--ink-muted); }
+.num { font-variant-numeric:tabular-nums; }
 
-.top { position:fixed; inset:0 0 auto 0; height:var(--top-h); z-index:20;
-  background:var(--surface-brand); color:var(--on-brand);
-  display:flex; align-items:center; gap:var(--space-4); padding:0 var(--space-5); }
-.marca { display:flex; align-items:center; gap:var(--space-3); font-size:19px;
-  font-weight:700; letter-spacing:-.01em; white-space:nowrap; text-decoration:none; }
-.marca .rl { color:var(--surface-accent); font-weight:700; }
-.marca .hub { font-weight:400; opacity:.92; }
-.top-titulo { margin-left:var(--space-4); font-size:14px; opacity:.8;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.top-dir { margin-left:auto; display:flex; align-items:center; gap:var(--space-2); }
-.btn-top { height:34px; padding:0 var(--space-3); border-radius:var(--radius-md);
-  background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff;
-  cursor:pointer; font-size:13px; text-decoration:none; display:inline-flex;
-  align-items:center; gap:var(--space-2); }
-.btn-top:hover { background:rgba(255,255,255,.12); }
-.conta { display:flex; align-items:center; gap:var(--space-2); font-size:13px; }
-.conta .quem { opacity:.85; max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.menu-btn { display:none; background:none; border:0; color:#fff; cursor:pointer;
-  padding:var(--space-2); margin-left:calc(var(--space-2) * -1); border-radius:var(--radius-sm); }
+/* ── Trilho de ícones ──────────────────────────────────────────────── */
+.trilho { position:fixed; top:0; bottom:0; left:0; width:var(--trilho-w); z-index:20;
+  background:var(--surface-raised); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; align-items:center; padding:var(--space-4) 0; gap:var(--space-2); }
+.selo { width:36px; height:36px; border-radius:var(--radius-md); background:var(--brand-soft);
+  display:grid; place-items:center; margin-bottom:var(--space-6); flex-shrink:0; }
+.selo b { font-family:var(--font-heading); font-size:14px; font-weight:700; color:var(--brand); }
+.marca-grande .nome { font-family:var(--font-heading); font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-.01em; }
+.marca-grande .nome i { font-style:normal; color:var(--brand); }
+.ic-btn { width:44px; height:44px; border:0; background:transparent; border-radius:var(--radius-md);
+  display:grid; place-items:center; cursor:pointer; color:var(--ink-muted); flex-shrink:0; position:relative;
+  transition:background-color .12s ease, color .12s ease; }
+.ic-btn svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round; }
+.ic-btn:hover { background:var(--surface-hover); color:var(--ink); }
+.ic-btn[aria-current="page"] { background:var(--brand-soft); color:var(--brand); }
+.ic-btn .tranca { position:absolute; right:7px; top:7px; width:7px; height:7px;
+  border-radius:var(--radius-full); background:var(--attention); display:none; }
+.ic-btn[data-trancado="sim"] .tranca { display:block; }
+.trilho-fim { margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:var(--space-2); }
+.avatar { width:36px; height:36px; border-radius:var(--radius-full); border:0; cursor:pointer;
+  background:var(--brand); color:var(--on-brand); font-size:13px; font-weight:600; }
 
-.side { position:fixed; top:var(--top-h); bottom:0; left:0; width:var(--side-w); z-index:15;
-  background:var(--surface-100); border-right:1px solid var(--border-subtle);
-  overflow-y:auto; padding:var(--space-4) var(--space-3); }
-.grupo { margin-bottom:var(--space-2); }
-.grupo-cab { width:100%; display:flex; align-items:center; justify-content:space-between;
-  gap:var(--space-2); background:none; border:0; cursor:pointer; text-align:left; white-space:nowrap;
-  padding:var(--space-2) var(--space-3); border-radius:var(--radius-md); color:var(--ink-500);
-  font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; }
-.grupo-cab:hover { background:var(--surface-200); color:var(--ink-900); }
-.grupo-cab svg { transition:transform .18s ease; flex-shrink:0; }
-.grupo-cab[aria-expanded="false"] svg { transform:rotate(-90deg); }
-.grupo ul { list-style:none; margin:var(--space-1) 0 0; padding:0; }
-.grupo[data-aberto="false"] ul { display:none; }
-.item { display:flex; align-items:center; gap:var(--space-3); width:100%;
-  padding:var(--space-2) var(--space-3); border-radius:var(--radius-md);
-  color:var(--ink-700); text-decoration:none; font-size:14px; white-space:nowrap; }
-.item:hover { background:var(--surface-200); color:var(--ink-900); }
-.item[aria-current="page"] { background:var(--surface-brand); color:var(--on-brand); font-weight:500; }
-.item[aria-current="page"] .ponto { background:var(--surface-accent); }
-.item .ic { width:20px; height:20px; flex-shrink:0; opacity:.85; }
-.item[aria-current="page"] .ic { opacity:1; }
-.ponto { width:6px; height:6px; border-radius:var(--radius-pill);
-  background:var(--border-strong); flex-shrink:0; }
+/* dica que aparece ao lado do ícone */
+.dica { position:fixed; z-index:40; background:var(--ink); color:var(--surface-raised);
+  font-size:12px; line-height:16px; padding:6px var(--space-2); border-radius:var(--radius-sm);
+  pointer-events:none; opacity:0; transition:opacity .12s ease; white-space:nowrap; }
+.dica[data-ver="sim"] { opacity:1; }
 
-.cadeado { margin-left:auto; font-size:11px; opacity:.7; }
-.side-rodape { margin-top:var(--space-5); padding:var(--space-3);
-  border-top:1px solid var(--border-subtle); }
+/* ── Conta ─────────────────────────────────────────────────────────── */
+.conta-pop { position:fixed; left:calc(var(--trilho-w) + 8px); bottom:16px; z-index:45;
+  min-width:240px; background:var(--surface-raised); border:1px solid var(--line);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:var(--space-4); display:none; }
+.conta-pop[data-ver="sim"] { display:block; }
+.conta-pop .quem { font-size:13px; font-weight:600; color:var(--ink); word-break:break-all; margin-bottom:var(--space-2); }
+.btn-linha { width:100%; height:36px; border:1px solid var(--line); border-radius:var(--radius-md);
+  background:var(--surface-raised); cursor:pointer; font-size:14px; font-weight:600; margin-top:var(--space-3); }
+.btn-linha:hover { background:var(--surface-hover); }
 
-.main { position:fixed; top:var(--top-h); left:var(--side-w); right:0; bottom:0;
-  background:var(--surface-000); overflow:hidden; }
-iframe { width:100%; height:100%; border:0; display:block; background:var(--surface-000); }
+/* ── Palco ─────────────────────────────────────────────────────────── */
+.palco { position:fixed; top:0; left:var(--trilho-w); right:0; bottom:0; overflow:hidden; }
 
-.home { height:100%; overflow-y:auto; padding:var(--space-6); }
-.home-cab { max-width:900px; margin:0 auto var(--space-6); }
-.home h1 { font-size:28px; line-height:34px; font-weight:700; color:var(--ink-900); margin:0; }
-.home h1 .rl { color:var(--accent-ink); }
-.home p.sub { margin:var(--space-2) 0 0; color:var(--ink-500); font-size:15px; }
-.cards { max-width:900px; margin:0 auto; display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--space-5); }
-.card { display:block; border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
-  padding:var(--space-5); text-decoration:none; background:var(--surface-000); }
-.card:hover { border-color:var(--border-strong); background:var(--surface-100); }
-.card .icone { width:40px; height:40px; border-radius:var(--radius-md);
-  background:var(--surface-brand); color:var(--surface-accent);
-  display:grid; place-items:center; margin-bottom:var(--space-4); }
-.card h2 { font-size:18px; line-height:24px; font-weight:500; color:var(--ink-900);
-  margin:0 0 var(--space-2); }
-.card p { margin:0; font-size:13px; line-height:19px; color:var(--ink-500); }
+/* painel */
+.painel { height:100%; overflow-y:auto; padding:var(--space-12) var(--space-12) var(--space-12); }
+.painel-cab { display:flex; align-items:flex-end; gap:var(--space-4); margin-bottom:var(--space-8); flex-wrap:wrap; }
+.ola { font-family:var(--font-heading); font-size:28px; line-height:36px; font-weight:700; letter-spacing:-.01em; color:var(--ink); margin:0; }
+.hoje { font-size:13px; color:var(--ink-muted); padding-bottom:6px; }
+.cab-fim { margin-left:auto; display:flex; align-items:center; gap:var(--space-2); }
+.busca { display:flex; align-items:center; gap:var(--space-2); height:40px; width:260px;
+  padding:0 var(--space-4); border-radius:var(--radius-full); background:var(--surface-raised);
+  border:1px solid var(--line); color:var(--ink-muted); }
+.busca:focus-within { border-color:var(--brand); box-shadow:var(--focus-ring); }
+.busca svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; flex-shrink:0; }
+.busca input { border:0; background:transparent; outline:none; width:100%; font-size:14px; color:var(--ink); }
+.busca input:focus-visible { box-shadow:none; }
+.busca input::placeholder { color:var(--ink-muted); }
 
+.mosaico { display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:132px; gap:var(--space-4); }
+/* cartões: borda fina e espaço, sem sombra; o hover só troca a borda */
+.w { display:flex; flex-direction:column; min-width:0; text-align:left;
+  background:var(--surface-raised); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:var(--space-6); cursor:pointer; color:inherit;
+  transition:border-color .16s ease; }
+.w:hover { border-color:var(--brand); }
+.w:focus-visible { border-radius:var(--radius-lg); }
+.w.grande { grid-column:span 2; grid-row:span 2; }
+.w.alta { grid-row:span 2; }
+.w-cab { display:flex; align-items:center; gap:var(--space-2); font-size:12px; font-weight:500;
+  letter-spacing:.02em; color:var(--ink-muted); }
+.w-ic { width:28px; height:28px; border-radius:var(--radius-sm); background:var(--brand-soft);
+  color:var(--brand); display:grid; place-items:center; flex-shrink:0; }
+.w-cab svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round; }
+.w h2 { font-family:var(--font-heading); margin:var(--space-4) 0 0; font-size:20px; line-height:28px; font-weight:600; color:var(--ink); }
+.w.grande h2 { font-size:24px; line-height:32px; }
+.w p { margin:var(--space-2) 0 0; font-size:14px; line-height:20px; color:var(--ink-muted); }
+.w-fim { display:block; margin-top:auto; padding-top:var(--space-4); }
+.w-pe { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2);
+  margin-top:var(--space-3); padding-top:var(--space-3); border-top:1px solid var(--line); }
+.w-end { font-size:12px; color:var(--ink-muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.w-valor { display:inline-flex; align-items:center; gap:var(--space-2);
+  font-size:28px; line-height:36px; font-weight:700; letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums; color:var(--ink); }
+.w-valor svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.2;
+  stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+.w-valor.pos svg { color:var(--positive); } .w-valor.neg svg { color:var(--negative); }
+.w-abrir { display:inline-flex; align-items:center; gap:var(--space-2); font-size:14px; color:var(--brand); font-weight:600; }
+.w-abrir svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.selo-trancado { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px;
+  font-weight:500; padding:4px var(--space-2); border-radius:var(--radius-full);
+  background:var(--attention-soft); color:var(--ink); }
+.selo-trancado::before { content:""; width:6px; height:6px; border-radius:var(--radius-full); background:var(--attention); }
+.w[hidden] { display:none; }
+.vazio { grid-column:1/-1; padding:var(--space-8); text-align:center; color:var(--ink-muted); font-size:14px; }
+
+/* página carregada */
+.app-cab { height:56px; display:flex; align-items:center; gap:var(--space-3);
+  padding:0 var(--space-6); border-bottom:1px solid var(--line); background:var(--surface-raised); }
+.app-cab h1 { font-family:var(--font-heading); margin:0; font-size:18px; line-height:26px; font-weight:600; letter-spacing:-.01em;
+  color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.app-cab .grupo { font-size:12px; font-weight:500; letter-spacing:.02em; color:var(--ink-muted); white-space:nowrap; }
+.app-acoes { margin-left:auto; display:flex; align-items:center; gap:var(--space-2); }
+.btn-pequeno { height:34px; padding:0 var(--space-3); border-radius:var(--radius-md);
+  border:1px solid var(--brand); background:transparent; color:var(--brand); cursor:pointer;
+  font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:var(--space-2); }
+.btn-pequeno:hover { background:var(--brand-soft); }
+.btn-pequeno svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.moldura { position:absolute; top:56px; left:0; right:0; bottom:0; }
+.moldura iframe { width:100%; height:100%; border:0; display:block; background:var(--surface); }
 .carregando { position:absolute; inset:0; display:grid; place-items:center;
-  background:var(--surface-000); color:var(--ink-500); font-size:13px; }
+  background:var(--surface); color:var(--ink-muted); font-size:13px; }
 
-/* ── Entrada ────────────────────────────────────────────────────────── */
-.entrar-area { height:100%; overflow-y:auto; display:grid; place-items:center; padding:var(--space-6); }
-.entrar { width:100%; max-width:400px; border:1px solid var(--border-subtle);
-  border-radius:var(--radius-lg); padding:var(--space-5); background:var(--surface-000); }
-.entrar h2 { font-size:20px; line-height:26px; font-weight:500; color:var(--ink-900); margin:0 0 var(--space-2); }
-.entrar .por-que { font-size:13px; line-height:19px; color:var(--ink-500); margin:0 0 var(--space-5); }
+/* ── Entrada ───────────────────────────────────────────────────────── */
+.entrar-area { height:100%; overflow-y:auto; display:grid; place-items:center; padding:var(--space-8); }
+.entrar { width:100%; max-width:400px; background:var(--surface-raised);
+  border:1px solid var(--line); border-radius:var(--radius-lg); padding:var(--space-8); }
+.entrar .marca-grande { display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-6); }
+.entrar .marca-grande .selo { margin:0; }
+.entrar h2 { font-family:var(--font-heading); font-size:20px; line-height:28px; font-weight:600; color:var(--ink); margin:0 0 var(--space-2); }
+.entrar .por-que { font-size:14px; line-height:20px; color:var(--ink-muted); margin:0 0 var(--space-6); }
 .campo-bloco { margin-bottom:var(--space-4); }
-.campo-bloco label { display:block; margin-bottom:var(--space-2); }
-.campo-bloco input { width:100%; height:40px; border:1px solid var(--border-strong);
-  border-radius:var(--radius-sm); background:var(--surface-000); color:var(--ink-900);
-  padding:0 var(--space-3); font-family:var(--font-sans); font-size:15px; }
-.campo-bloco input:focus { outline:none; border-color:var(--focus); box-shadow:0 0 0 2px rgba(63,156,124,.2); }
-.btn-entrar { width:100%; height:42px; border:0; border-radius:var(--radius-md);
-  background:var(--surface-brand); color:var(--on-brand); font-size:15px; font-weight:500; cursor:pointer; }
-.btn-entrar:hover { background:#00355e; }
+.campo-bloco label { display:block; margin-bottom:var(--space-1); }
+.campo-bloco input { width:100%; height:44px; border:1px solid var(--border-control);
+  border-radius:var(--radius-sm); background:var(--surface-raised); color:var(--ink);
+  padding:0 var(--space-3); font-size:15px; }
+.campo-bloco input::placeholder { color:var(--ink-muted); }
+.campo-bloco input:focus { outline:none; border-color:var(--brand); box-shadow:var(--focus-ring); }
+.btn-entrar { width:100%; height:44px; border:0; border-radius:var(--radius-md); margin-top:var(--space-2);
+  background:var(--brand); color:var(--on-brand); font-size:15px; font-weight:600; cursor:pointer; }
+.btn-entrar:hover { filter:brightness(1.08); }
 .btn-entrar:disabled { opacity:.6; cursor:default; }
-.aviso { margin:var(--space-4) 0 0; font-size:13px; line-height:19px; }
-.aviso.erro { color:var(--negative); }
-.aviso.ok { color:var(--accent-ink); }
-.entrar .rodape { margin:var(--space-5) 0 0; padding-top:var(--space-4);
-  border-top:1px solid var(--border-subtle); }
+.aviso { margin:var(--space-4) 0 0; font-size:14px; line-height:20px; }
+.aviso.erro { padding:var(--space-3); border-radius:var(--radius-md); background:var(--negative-soft); color:var(--ink); }
+.entrar .rodape { margin:var(--space-6) 0 0; padding-top:var(--space-4); border-top:1px solid var(--line); }
 
-.velo { display:none; position:fixed; inset:var(--top-h) 0 0 0; z-index:14;
-  background:rgba(0,38,63,.45); }
+/* sem sessão: só a tela de entrar */
+body[data-conta="fora"] .trilho,
+body[data-conta="verificando"] .trilho { display:none; }
+body[data-conta="fora"] .palco,
+body[data-conta="verificando"] .palco { left:0; }
+body[data-conta="fora"] .conta-pop { display:none; }
 
-@media (max-width:860px) {
-  .menu-btn { display:block; }
-  .side { transform:translateX(-100%); transition:transform .2s ease; width:min(var(--side-w),82vw); }
-  body[data-menu="aberto"] .side { transform:translateX(0); }
-  body[data-menu="aberto"] .velo { display:block; }
-  .main { left:0; }
-  .top-titulo, .conta .quem { display:none; }
-  .home { padding:var(--space-4); }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none !important; } }
+
+/* ── Telas estreitas: o trilho vira uma doca embaixo ───────────────── */
+@media (max-width:820px) {
+  .trilho { top:auto; right:0; width:auto; height:var(--dock-h);
+    flex-direction:row; justify-content:space-around; align-items:center;
+    padding:0 var(--space-3); border-right:0; border-top:1px solid var(--line); }
+  .selo { margin:0; }
+  .trilho-fim { margin:0; flex-direction:row; }
+  .palco { left:0; bottom:var(--dock-h); }
+  .conta-pop { left:12px; right:12px; bottom:calc(var(--dock-h) + 8px); }
+  .painel { padding:var(--space-6) var(--space-4) var(--space-8); }
+  .ola { font-size:24px; line-height:32px; }
+  .cab-fim { margin-left:0; width:100%; }
+  .busca { width:100%; }
+  .mosaico { grid-template-columns:repeat(2,1fr); grid-auto-rows:auto; }
+  .w { min-height:176px; padding:var(--space-4); }
+  .w.grande { grid-column:span 2; grid-row:span 1; }
+  .w.alta { grid-row:span 1; }
+  .app-cab { padding:0 var(--space-4); }
+  .dica { display:none; }
 }
-/* ── Sem sessão: só a barra de cima e a tela de entrar ─────────────── */
-body[data-conta="fora"] .side,
-body[data-conta="verificando"] .side,
-body[data-conta="fora"] .menu-btn,
-body[data-conta="verificando"] .menu-btn,
-body[data-conta="fora"] .velo,
-body[data-conta="fora"] #abrirNova,
-body[data-conta="fora"] .conta { display:none; }
-body[data-conta="fora"] .main,
-body[data-conta="verificando"] .main { left:0; }
-
-/* ── Barra lateral recolhida: só os ícones; abre ao passar o mouse ──── */
-@media (min-width:861px) {
-  .side { width:var(--side-w-min); transition:width .18s ease;
-          overflow-x:hidden; overflow-y:auto; }
-  .side:hover, .side:focus-within { width:var(--side-w); box-shadow:2px 0 16px rgba(0,38,63,.14); }
-  .main { left:var(--side-w-min); }
-
-  .side.recolhida .txt-menu,
-  .side.recolhida .cadeado,
-  .side.recolhida .grupo-cab { display:none; }
-  .side.recolhida .grupo[data-aberto="false"] ul { display:block; }
-  .side.recolhida .grupo + .grupo { margin-top:var(--space-3); padding-top:var(--space-3);
-    border-top:1px solid var(--border-subtle); }
-  .side.recolhida .item { justify-content:center; padding-left:0; padding-right:0; gap:0; }
-  .side.recolhida .side-rodape { margin-top:var(--space-4); padding:var(--space-3) 0 0; }
-  .side.recolhida nav { padding-top:var(--space-1); }
+@media (max-width:520px) {
+  .mosaico { grid-template-columns:1fr; }
+  .w.grande { grid-column:span 1; }
 }
 </style>
 </head>
 <body data-conta="verificando">
 
-<header class="top">
-  <button class="menu-btn" id="menuBtn" type="button" aria-label="Abrir menu" aria-expanded="false">
-    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" fill="currentColor">
-      <rect x="2" y="5"  width="18" height="2" rx="1"></rect>
-      <rect x="2" y="10" width="18" height="2" rx="1"></rect>
-      <rect x="2" y="15" width="18" height="2" rx="1"></rect>
-    </svg>
-  </button>
+<aside class="trilho" id="trilho" aria-label="Páginas do hub"></aside>
 
-  <a class="marca" href="#/" id="marca">
-    <svg width="24" height="24" viewBox="0 0 22 22" aria-hidden="true">
-      <rect x="0" y="4" width="22" height="2" rx="1" fill="#66cdaa"></rect>
-      <rect x="2" y="10" width="4" height="9" rx="1" fill="#fff" opacity=".85"></rect>
-      <rect x="9" y="8" width="4" height="11" rx="1" fill="#fff" opacity=".85"></rect>
-      <rect x="16" y="13" width="4" height="6" rx="1" fill="#fff" opacity=".85"></rect>
-    </svg>
-    <span><span class="rl">RL</span><span class="hub">hub</span></span>
-  </a>
+<div class="conta-pop" id="contaPop"></div>
+<div class="dica" id="dica"></div>
 
-  <span class="top-titulo" id="topTitulo"></span>
-
-  <div class="top-dir">
-    <span class="conta" id="conta"></span>
-    <a class="btn-top" id="abrirNova" href="#" target="_blank" rel="noopener" style="display:none">Abrir em nova aba</a>
-    <button class="btn-top" id="tema" type="button">Tema escuro</button>
-  </div>
-</header>
-
-<div class="velo" id="velo"></div>
-
-<aside class="side" id="side">
-  <nav aria-label="Seções">
-    <div class="grupo" data-aberto="true">
-      <button class="grupo-cab" type="button" aria-expanded="true">
-        <span class="txt-menu">Financeiro</span>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 5.5L7 9.5L11 5.5"></path>
-        </svg>
-      </button>
-      <ul>
-        <li><a class="item" href="#/obras" data-rota="obras" title="Controle de Obras">
-          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor"
-               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 17V8.5L10 4l7 4.5V17z"></path><path d="M8 17v-5h4v5"></path>
-          </svg>
-          <span class="txt-menu">Controle de Obras</span><span class="cadeado" id="cadeadoObras"></span></a></li>
-        <li><a class="item" href="#/financeiro" data-rota="financeiro" title="Receitas/Despesas">
-          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor"
-               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 9L6 3M3.5 5.5L6 3l2.5 2.5"></path>
-            <path d="M14 11v6M11.5 14.5L14 17l2.5-2.5"></path>
-          </svg>
-          <span class="txt-menu">Receitas/Despesas</span><span class="cadeado" id="cadeadoFinanceiro"></span></a></li>
-      </ul>
-    </div>
-
-    <div class="grupo" data-aberto="true">
-      <button class="grupo-cab" type="button" aria-expanded="true">
-        <span class="txt-menu">Investimentos</span>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 5.5L7 9.5L11 5.5"></path>
-        </svg>
-      </button>
-      <ul>
-        <li><a class="item" href="#/preco-teto" data-rota="preco-teto" title="Calcular preço teto">
-          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor"
-               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 14l4-4 3 3 6-6"></path><path d="M12 7h4v4"></path>
-          </svg>
-          <span class="txt-menu">Calcular preço teto</span></a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <div class="side-rodape">
-    <p class="legenda txt-menu" style="margin:0">Cada página continua funcionando pelo endereço próprio;
-      o hub só reúne tudo num lugar.</p>
-  </div>
-</aside>
-
-<main class="main" id="main"></main>
+<main class="palco" id="palco"></main>
 
 <script>
 "use strict";
@@ -273,11 +243,29 @@ body[data-conta="verificando"] .main { left:0; }
 var SUPABASE_URL = "https://inlkyyjqfrokohdgfswd.supabase.co";
 var SUPABASE_KEY = "sb_publishable_Jy_Htveu81VI0-WGwJlO_g_lieqPAZT";
 
+/* ── Ícones (traço de 1.7px, caixa de 24) ──────────────────────────── */
+var ICONES = {
+  painel: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
+  obra: '<svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l7-5 7 5v11"/><path d="M10 20v-6h4v6"/></svg>',
+  barras: '<svg viewBox="0 0 24 24"><path d="M2 18h20M5 18V9M11 18V5M17 18v-7"/></svg>',
+  alta: '<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
+  seta: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>',
+  busca: '<svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17" stroke-linecap="round"/></svg>',
+  externo: '<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  sol: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>',
+  sobe: '<svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>',
+  desce: '<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m18 13-6 6-6-6"/></svg>',
+  lua: '<svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>'
+};
+
+/* ── As páginas do hub ─────────────────────────────────────────────── */
 var ROTAS = {
   "obras": {
     titulo: "Controle de Obras",
     grupo: "Financeiro",
     url: "/controle-obras/",
+    icone: "obra",
+    tamanho: "alta",
     precisaConta: true,
     desc: "Orçamento por etapa, lançamentos, realizado × orçado e previsão de desembolso."
   },
@@ -285,6 +273,8 @@ var ROTAS = {
     titulo: "Receitas/Despesas",
     grupo: "Financeiro",
     url: "/financeiro/",
+    icone: "barras",
+    tamanho: "grande",
     precisaConta: true,
     desc: "Contas, cartões, lançamentos, parcelas, faturas e relatórios do mês."
   },
@@ -292,10 +282,30 @@ var ROTAS = {
     titulo: "Calcular preço teto",
     grupo: "Investimentos",
     url: "/analisador-de-preco/",
+    icone: "alta",
+    tamanho: "alta",
     precisaConta: false,
     desc: "Até quanto pagar por uma ação para obter o dividend yield que você exige."
   }
 };
+
+/* ── Widgets: cada página pode publicar um número para o painel ──────
+   Registre aqui uma função por rota; ela recebe o cliente do Supabase e
+   devolve { valor, legenda, tom } — tom: "pos", "neg" ou vazio.
+   Sem função registrada, o cartão mostra só o atalho "Abrir".
+
+   PROVEDORES["financeiro"] = async function (sb) {
+     var r = await sb.from("fin_lancamentos").select("valor").gte("data", "2026-09-01");
+     var saldo = (r.data || []).reduce(function (s, l) { return s + Number(l.valor); }, 0);
+     return { valor: moeda(saldo), legenda: "saldo do mês", tom: saldo < 0 ? "neg" : "pos" };
+   };
+──────────────────────────────────────────────────────────────────────── */
+var PROVEDORES = {};
+
+function moeda(n) {
+  return (n < 0 ? "− " : "") + "R$ " + Math.abs(Number(n) || 0)
+    .toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 var $ = function (id) { return document.getElementById(id); };
 var sb = null, sessao = null;
@@ -306,94 +316,114 @@ try {
   }
 } catch (e) { console.warn("Supabase indisponível:", e); }
 
-/* ---------- tema (chave compartilhada com as páginas do hub) ---------- */
+/* ── Tema (chave compartilhada com as páginas do hub) ──────────────── */
 var loja = {
   get: function (k, d) { try { var v = localStorage.getItem("pt_" + k); return v === null ? d : v; } catch (e) { return d; } },
   set: function (k, v) { try { localStorage.setItem("pt_" + k, v); } catch (e) {} }
 };
 
+function temaAtual() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
+
 function aplicarTema(t) {
   document.documentElement.setAttribute("data-theme", t);
-  $("tema").textContent = t === "dark" ? "Tema claro" : "Tema escuro";
   loja.set("tema", t);
+  var b = $("btnTema");
+  if (b) {
+    b.innerHTML = (t === "dark" ? ICONES.sol : ICONES.lua);
+    b.setAttribute("aria-label", t === "dark" ? "Usar tema claro" : "Usar tema escuro");
+  }
   propagarTema();
 }
 function propagarTema() {
-  var f = document.querySelector("#main iframe");
+  var f = document.querySelector("#palco iframe");
   if (!f) return;
   try {
     var doc = f.contentDocument;
-    if (doc && doc.documentElement) {
-      doc.documentElement.setAttribute("data-theme", document.documentElement.getAttribute("data-theme"));
-    }
+    if (doc && doc.documentElement) doc.documentElement.setAttribute("data-theme", temaAtual());
   } catch (e) {}
 }
-$("tema").addEventListener("click", function () {
-  aplicarTema(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
-});
 
-/* ---------- barra lateral: recolhida, abre ao passar o mouse ---------- */
-var barra = $("side");
-var telaLarga = window.matchMedia("(min-width:861px)");
-function recolherBarra(v) {
-  barra.classList.toggle("recolhida", !!v && telaLarga.matches);
+/* ── Trilho ────────────────────────────────────────────────────────── */
+function montarTrilho() {
+  var html = '<a class="selo" href="#/" title="Painel do RLhub"><b>RL</b></a>';
+  html += '<button class="ic-btn" type="button" data-rota="" data-dica="Painel">' + ICONES.painel + '</button>';
+  Object.keys(ROTAS).forEach(function (k) {
+    var r = ROTAS[k];
+    html += '<button class="ic-btn" type="button" data-rota="' + k + '" data-dica="' + r.titulo + '">' +
+      ICONES[r.icone] + '<span class="tranca" aria-hidden="true"></span></button>';
+  });
+  html += '<div class="trilho-fim">' +
+    '<button class="ic-btn" type="button" id="btnTema" data-dica="Tema"></button>' +
+    '<button class="avatar" type="button" id="btnConta" aria-label="Conta">R</button>' +
+    '</div>';
+  $("trilho").innerHTML = html;
+
+  $("trilho").addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest(".ic-btn") : null;
+    if (!b || b.id === "btnTema") return;
+    location.hash = "#/" + (b.getAttribute("data-rota") || "");
+  });
+
+  $("btnTema").addEventListener("click", function () {
+    aplicarTema(temaAtual() === "dark" ? "light" : "dark");
+  });
+  $("btnConta").addEventListener("click", function (ev) {
+    ev.stopPropagation();
+    var p = $("contaPop");
+    p.setAttribute("data-ver", p.getAttribute("data-ver") === "sim" ? "nao" : "sim");
+  });
+  document.addEventListener("click", function () { $("contaPop").setAttribute("data-ver", "nao"); });
+
+  /* dica ao lado do ícone */
+  var dica = $("dica");
+  $("trilho").addEventListener("mouseover", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("[data-dica]") : null;
+    if (!b) return;
+    dica.textContent = b.getAttribute("data-dica");
+    var c = b.getBoundingClientRect();
+    dica.style.left = (c.right + 10) + "px";
+    dica.style.top = (c.top + c.height / 2 - 13) + "px";
+    dica.setAttribute("data-ver", "sim");
+  });
+  $("trilho").addEventListener("mouseout", function () { dica.setAttribute("data-ver", "nao"); });
 }
-recolherBarra(true);
-barra.addEventListener("mouseenter", function () { recolherBarra(false); });
-barra.addEventListener("mouseleave", function () { recolherBarra(true); });
-barra.addEventListener("focusin", function () { recolherBarra(false); });
-barra.addEventListener("focusout", function () {
-  if (!barra.matches(":hover")) recolherBarra(true);
-});
-telaLarga.addEventListener("change", function () { recolherBarra(!barra.matches(":hover")); });
 
-/* ---------- menu ---------- */
-[].forEach.call(document.querySelectorAll(".grupo-cab"), function (b) {
-  b.addEventListener("click", function () {
-    var g = b.parentNode;
-    var aberto = g.getAttribute("data-aberto") !== "false";
-    g.setAttribute("data-aberto", aberto ? "false" : "true");
-    b.setAttribute("aria-expanded", aberto ? "false" : "true");
+function marcarTrilho(chave) {
+  [].forEach.call(document.querySelectorAll(".ic-btn[data-rota]"), function (b) {
+    var k = b.getAttribute("data-rota");
+    if (k === (chave || "")) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+    var r = ROTAS[k];
+    b.setAttribute("data-trancado", (r && r.precisaConta && sb && !sessao) ? "sim" : "nao");
   });
-});
-function fecharMenu() { document.body.removeAttribute("data-menu"); $("menuBtn").setAttribute("aria-expanded", "false"); }
-$("menuBtn").addEventListener("click", function () {
-  var aberto = document.body.getAttribute("data-menu") === "aberto";
-  if (aberto) fecharMenu();
-  else { document.body.setAttribute("data-menu", "aberto"); $("menuBtn").setAttribute("aria-expanded", "true"); }
-});
-$("velo").addEventListener("click", fecharMenu);
+}
 
-/* ---------- conta ---------- */
+/* ── Conta ─────────────────────────────────────────────────────────── */
+function nomeDaConta() {
+  var e = sessao && sessao.user && sessao.user.email ? sessao.user.email : "";
+  if (!e) return "";
+  var n = e.split("@")[0].split(/[._-]/)[0];
+  return n.charAt(0).toUpperCase() + n.slice(1);
+}
+
 function renderConta() {
-  var alvo = $("conta");
-  alvo.innerHTML = "";
-  // sem biblioteca de login não há o que trancar
   document.body.setAttribute("data-conta", !sb ? "dentro" : (sessao ? "dentro" : "fora"));
-  var cad = (sessao || !sb) ? "" : "\uD83D\uDD12";
-  ["cadeadoObras","cadeadoFinanceiro"].forEach(function (id) {
-    var el = $(id); if (el) el.textContent = cad;
-  });
+  var av = $("btnConta");
+  if (av) av.textContent = (nomeDaConta().charAt(0) || "R");
 
-  if (!sb) return;
-
+  var p = $("contaPop");
+  if (!p) return;
   if (sessao) {
-    var quem = document.createElement("span");
-    quem.className = "quem";
-    quem.textContent = sessao.user && sessao.user.email ? sessao.user.email : "conectado";
-    var sair = document.createElement("button");
-    sair.className = "btn-top";
-    sair.type = "button";
-    sair.textContent = "Sair";
-    sair.addEventListener("click", sairDaConta);
-    alvo.appendChild(quem);
-    alvo.appendChild(sair);
+    p.innerHTML = '<div class="quem">' + (sessao.user && sessao.user.email ? sessao.user.email : "conectado") + '</div>' +
+      '<p class="legenda" style="margin:0">Uma entrada só: as páginas do hub abrem já conectadas.</p>' +
+      '<button class="btn-linha" type="button" id="btnSair">Sair</button>';
+    var s = $("btnSair");
+    if (s) s.addEventListener("click", sairDaConta);
   } else {
-    var entrar = document.createElement("a");
-    entrar.className = "btn-top";
-    entrar.href = "#/entrar";
-    entrar.textContent = "Entrar";
-    alvo.appendChild(entrar);
+    p.innerHTML = '<p class="legenda" style="margin:0">Você não está conectado.</p>' +
+      '<button class="btn-linha" type="button" id="btnEntrarPop">Entrar</button>';
+    var b = $("btnEntrarPop");
+    if (b) b.addEventListener("click", function () { location.hash = "#/entrar"; });
   }
 }
 
@@ -401,17 +431,136 @@ async function sairDaConta() {
   if (!sb) return;
   try { await sb.auth.signOut(); } catch (e) {}
   sessao = null;
+  $("contaPop").setAttribute("data-ver", "nao");
   renderConta();
   navegar();
 }
 
+/* ── Painel ────────────────────────────────────────────────────────── */
+function saudacao() {
+  var h = new Date().getHours();
+  return h < 12 ? "Bom dia" : (h < 18 ? "Boa tarde" : "Boa noite");
+}
+
+function renderPainel() {
+  var nome = nomeDaConta();
+  var hoje = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+
+  var cartoes = Object.keys(ROTAS).map(function (k) {
+    var r = ROTAS[k];
+    var trancado = r.precisaConta && sb && !sessao;
+    return '<button class="w ' + r.tamanho + '" type="button" data-rota="' + k + '" data-busca="' +
+        (r.titulo + " " + r.grupo + " " + r.desc).toLowerCase() + '">' +
+      '<span class="w-cab"><span class="w-ic">' + ICONES[r.icone] + '</span>' + r.grupo + '</span>' +
+      '<h2>' + r.titulo + '</h2>' +
+      '<p>' + r.desc + '</p>' +
+      '<span class="w-fim" id="dado-' + k + '">' +
+        (trancado ? '<span class="selo-trancado">precisa entrar</span>'
+                  : '<span class="w-abrir">Abrir' + ICONES.seta + '</span>') +
+      '</span>' +
+      '<span class="w-pe"><span class="w-end">' + r.url + '</span></span>' +
+    '</button>';
+  }).join("");
+
+  $("palco").innerHTML =
+    '<div class="painel">' +
+      '<div class="painel-cab">' +
+        '<h1 class="ola">' + saudacao() + (nome ? ", " + nome : "") + '</h1>' +
+        '<span class="hoje">' + hoje + '</span>' +
+        '<div class="cab-fim"><label class="busca">' + ICONES.busca +
+          '<input id="busca" type="search" placeholder="Buscar páginas" aria-label="Buscar páginas"></label></div>' +
+      '</div>' +
+      '<div class="mosaico" id="mosaico">' + cartoes +
+        '<p class="vazio" id="vazio" hidden>Nenhuma página com esse nome.</p>' +
+      '</div>' +
+    '</div>';
+
+  $("mosaico").addEventListener("click", function (ev) {
+    var c = ev.target.closest ? ev.target.closest(".w") : null;
+    if (c) location.hash = "#/" + c.getAttribute("data-rota");
+  });
+
+  $("busca").addEventListener("input", function () {
+    var t = this.value.trim().toLowerCase();
+    var achou = 0;
+    [].forEach.call(document.querySelectorAll(".w"), function (c) {
+      var bate = !t || c.getAttribute("data-busca").indexOf(t) >= 0;
+      c.hidden = !bate;
+      if (bate) achou++;
+    });
+    $("vazio").hidden = achou > 0;
+  });
+
+  preencherWidgets();
+}
+
+function preencherWidgets() {
+  Object.keys(ROTAS).forEach(async function (k) {
+    var fn = PROVEDORES[k];
+    if (!fn || !sb || (ROTAS[k].precisaConta && !sessao)) return;
+    try {
+      var d = await fn(sb);
+      var alvo = $("dado-" + k);
+      if (!d || !alvo) return;
+      // ganho e perda levam seta, nunca só a cor
+      var seta = d.tom === "pos" ? ICONES.sobe : (d.tom === "neg" ? ICONES.desce : "");
+      alvo.innerHTML = '<span class="w-valor ' + (d.tom || "") + '">' + seta + d.valor + '</span>' +
+        (d.legenda ? '<span class="legenda" style="display:block">' + d.legenda + '</span>' : '');
+    } catch (e) { console.warn("Widget de " + k + ":", e); }
+  });
+}
+
+/* ── Página carregada ──────────────────────────────────────────────── */
+function renderApp(chave) {
+  var r = ROTAS[chave];
+  // o GitHub Pages guarda a página por 10 minutos; o carimbo garante a versão nova
+  var endereco = r.url + (r.url.indexOf("?") >= 0 ? "&" : "?") + "v=" + Date.now();
+
+  $("palco").innerHTML =
+    '<div class="app-cab">' +
+      '<span class="grupo">' + r.grupo + ' ·</span>' +
+      '<h1>' + r.titulo + '</h1>' +
+      '<div class="app-acoes">' +
+        '<a class="btn-pequeno" href="' + r.url + '" target="_blank" rel="noopener">' + ICONES.externo + 'Nova aba</a>' +
+      '</div>' +
+    '</div>' +
+    '<div class="moldura">' +
+      '<div class="carregando" id="carregando">Carregando ' + r.titulo + '…</div>' +
+      '<iframe id="quadro" title="' + r.titulo + '" src="' + endereco + '"></iframe>' +
+    '</div>';
+
+  var f = $("quadro");
+  f.addEventListener("load", function () {
+    var c = $("carregando");
+    if (c) c.remove();
+    propagarTema();
+    ajustarEmbutido(f);
+  });
+}
+
+/* Dentro do hub, a página não repete a marca nem o botão de tema. */
+function ajustarEmbutido(frame) {
+  try {
+    var doc = frame.contentDocument;
+    if (!doc) return;
+    var estilo = doc.createElement("style");
+    estilo.textContent =
+      ".top .logo, .top #tema, .top .tema, #tema { display:none !important; }" +
+      ".top { padding-left:16px !important; }";
+    doc.head.appendChild(estilo);
+  } catch (e) {}
+}
+
+/* ── Entrar ────────────────────────────────────────────────────────── */
 function renderEntrar(rotaDestino) {
   var r = rotaDestino ? ROTAS[rotaDestino] : null;
-  $("topTitulo").textContent = "Entrar";
-  $("abrirNova").style.display = "none";
 
-  $("main").innerHTML =
+  $("palco").innerHTML =
     '<div class="entrar-area"><div class="entrar">' +
+      '<div class="marca-grande">' +
+        '<span class="selo"><b>RL</b></span>' +
+        '<span class="nome"><i>RL</i>hub</span>' +
+      '</div>' +
       '<h2>Entrar na sua conta</h2>' +
       '<p class="por-que">' +
         (r ? r.titulo + ' guarda seus dados na sua conta. Entre uma vez aqui e o hub abre a página já conectada.'
@@ -439,7 +588,12 @@ function renderEntrar(rotaDestino) {
     ev.preventDefault();
     var aviso = $("avisoEntrar"), botao = $("btnEntrar");
     aviso.style.display = "none";
-    if (!sb) { aviso.className = "aviso erro"; aviso.textContent = "Não consegui carregar a biblioteca de login."; aviso.style.display = "block"; return; }
+    if (!sb) {
+      aviso.className = "aviso erro";
+      aviso.textContent = "Não consegui carregar a biblioteca de login.";
+      aviso.style.display = "block";
+      return;
+    }
     botao.disabled = true; botao.textContent = "Entrando…";
     try {
       var res = await sb.auth.signInWithPassword({
@@ -470,82 +624,11 @@ function renderEntrar(rotaDestino) {
   setTimeout(function () { var e = $("email"); if (e) e.focus(); }, 60);
 }
 
-/* ---------- navegação ---------- */
+/* ── Navegação ─────────────────────────────────────────────────────── */
 function rotaAtual() {
   var h = (location.hash || "").replace(/^#\/?/, "").replace(/\/$/, "");
   if (h === "entrar") return "entrar";
   return ROTAS[h] ? h : "";
-}
-
-function marcarItem(chave) {
-  [].forEach.call(document.querySelectorAll(".item"), function (a) {
-    if (a.getAttribute("data-rota") === chave) a.setAttribute("aria-current", "page");
-    else a.removeAttribute("aria-current");
-  });
-}
-
-function renderHome() {
-  $("topTitulo").textContent = "";
-  $("abrirNova").style.display = "none";
-  var cards = Object.keys(ROTAS).map(function (k) {
-    var r = ROTAS[k];
-    var trava = (r.precisaConta && !sessao) ? ' · precisa entrar' : '';
-    return '<a class="card" href="#/' + k + '">' +
-      '<span class="icone">' +
-        '<svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" fill="currentColor">' +
-        '<rect x="2" y="10" width="4" height="9" rx="1"></rect>' +
-        '<rect x="9" y="6" width="4" height="13" rx="1"></rect>' +
-        '<rect x="16" y="13" width="4" height="6" rx="1"></rect></svg>' +
-      '</span>' +
-      '<h2>' + r.titulo + '</h2>' +
-      '<p>' + r.desc + '</p>' +
-      '<p class="legenda" style="margin-top:12px">' + r.grupo + trava + '</p>' +
-    '</a>';
-  }).join("");
-
-  $("main").innerHTML =
-    '<div class="home">' +
-      '<div class="home-cab">' +
-        '<h1><span class="rl">RL</span>hub</h1>' +
-        '<p class="sub">Suas páginas reunidas num lugar só. Escolha no menu ao lado ou nos cartões abaixo.</p>' +
-      '</div>' +
-      '<div class="cards">' + cards + '</div>' +
-    '</div>';
-}
-
-function renderApp(chave) {
-  var r = ROTAS[chave];
-  $("topTitulo").textContent = r.grupo + " · " + r.titulo;
-  $("abrirNova").href = r.url;
-  $("abrirNova").style.display = "";
-
-  // o GitHub Pages guarda a página por 10 minutos; o carimbo garante a versão nova
-  var endereco = r.url + (r.url.indexOf("?") >= 0 ? "&" : "?") + "v=" + Date.now();
-
-  $("main").innerHTML =
-    '<div class="carregando" id="carregando">Carregando ' + r.titulo + '…</div>' +
-    '<iframe id="quadro" title="' + r.titulo + '" src="' + endereco + '"></iframe>';
-
-  var f = $("quadro");
-  f.addEventListener("load", function () {
-    var c = $("carregando");
-    if (c) c.remove();
-    propagarTema();
-    ajustarEmbutido(f);
-  });
-}
-
-/* Dentro do hub, a página não repete a marca nem o botão de tema. */
-function ajustarEmbutido(frame) {
-  try {
-    var doc = frame.contentDocument;
-    if (!doc) return;
-    var estilo = doc.createElement("style");
-    estilo.textContent =
-      ".top .logo, .top #tema, .top .tema, #tema { display:none !important; }" +
-      ".top { padding-left:16px !important; }";
-    doc.head.appendChild(estilo);
-  } catch (e) {}
 }
 
 function navegar() {
@@ -553,33 +636,24 @@ function navegar() {
 
   // enquanto não entrar, o hub inteiro fica fechado
   if (sb && !sessao) {
-    marcarItem("");
+    marcarTrilho("");
     renderEntrar(chave && chave !== "entrar" ? chave : null);
-    fecharMenu();
     return;
   }
 
-  if (chave === "entrar") {
-    marcarItem("");
-    location.hash = "#/";
-    return;
-  }
+  if (chave === "entrar") { location.hash = "#/"; return; }
 
-  marcarItem(chave);
+  marcarTrilho(chave);
 
-  if (chave && ROTAS[chave].precisaConta && !sessao) {
-    renderEntrar(chave);
-  } else if (chave) {
-    renderApp(chave);
-  } else {
-    renderHome();
-  }
-  fecharMenu();
+  if (chave && ROTAS[chave].precisaConta && !sessao) renderEntrar(chave);
+  else if (chave) renderApp(chave);
+  else renderPainel();
 }
 
 window.addEventListener("hashchange", navegar);
 
-/* ---------- inicialização ---------- */
+/* ── Inicialização ─────────────────────────────────────────────────── */
+montarTrilho();
 aplicarTema(loja.get("tema",
   (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light"));
 
