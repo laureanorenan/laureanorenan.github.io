@@ -51,13 +51,22 @@ O endereço guarda a página aberta, então dá para favoritar direto:
 
 ## Identidade visual
 
-Segue o design system RLhub: fundo `#F7F8FA`, cartões brancos com borda fina
-`#E6E9EE` (sem sombra), texto grafite `#1D232B` / `#6B7280`, azul profundo
-`#2457A7` só para ações e navegação, verde `#198754` para evolução, vermelho
-`#B42318` para queda e âmbar `#C88719` para avisos. Manrope nos títulos e Inter
-no texto e nos números (algarismos tabulares). Ganho e perda sempre com seta,
-nunca só a cor. O tema escuro é derivado da mesma paleta; a escolha de tema é
-compartilhada entre o hub e as páginas pela chave `pt_tema`.
+Modelo A, "Clareza" (set/2026): poucos cartões brancos sobre fundo suave, com
+bastante espaço e borda fina em vez de sombra.
+
+- Cores: fundo `#F7F8FA`, cartões `#FFFFFF`, bordas `#E6E9EE`, texto grafite
+  `#1D232B` / `#6B7280`, azul `#2457A7` só para ação principal e item ativo,
+  verde `#198754` só para evolução, âmbar `#C88719` para avisos (em texto, o tom
+  escuro `#8F5E0C`). Perdas ficam em grafite com ▼ e sinal −, sem vermelho.
+- Tipografia: Manrope 600 nos títulos, Inter nos textos e números (algarismos
+  tabulares).
+- Cantos: cartão 16, botão e campo 10, filtros em pílula. Espaçamento base 8.
+- Ícones de linha (traço 1,6), sempre com rótulo: o trilho mostra o nome embaixo
+  de cada ícone e, no celular, vira uma doca flutuante com os mesmos rótulos.
+- Sombra só no que flutua (menu da conta). Movimento de 160–200 ms.
+
+O tema escuro é derivado da mesma paleta; a escolha de tema é compartilhada
+entre o hub e as páginas pela chave `pt_tema`.
 
 ## Adicionar uma página nova
 
